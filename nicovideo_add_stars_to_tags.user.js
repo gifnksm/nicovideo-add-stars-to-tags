@@ -206,7 +206,14 @@ TagLink.prototype = {
 // 全てのタグ(海外タグ含む)を管理するクラス
 var AllTags = [];
 AllTags.selectionMode = false;
-AllTags.showAll = false;
+AllTags._showAll = GM_getValue('showAllTags', false);
+AllTags.__defineGetter__('showAll', function() this._showAll);
+AllTags.__defineSetter__('showAll', function(value) {
+                           value = Boolean(value);
+                           GM_setValue('showAllTags', value);
+                           return this._showAll = value;
+                         });
+AllTags.showAll = GM_getValue('showAllTags', false);
 AllTags.selectionCallbacks = [];
 AllTags.updateLinks = function(links) {
   this.length = links.length;
@@ -435,7 +442,10 @@ unsafeWindow.finishTagEdit = function(url) {
 };
 
 (function() {
-   AllTags.innerHTMLCache = document.getElementById('video_tags').innerHTML;
-   decorateLinks();
+   AllTags._cacheDomainHTML = document.getElementById('video_tags').innerHTML;
+   if (AllTags.showAll)
+     refreshTagLinks();
+   else
+     decorateLinks();
  })();
 
