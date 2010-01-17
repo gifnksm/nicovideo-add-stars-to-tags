@@ -398,6 +398,12 @@ function refreshTagLinks(callback) {
     video_tags.innerHTML = html;
     if (callback instanceof Function)
       callback();
+
+    // タグの更新後，大百科のアイコンが付かないニコニコ動画側のバグ(？)への対処
+    Array.forEach(
+      video_tags.querySelectorAll('[rel="tag"]:not(.nicopedia)'),
+      function(link) { console.log(link); link.className += ' nicopedia'; });
+
     if (unsafeWindow.Nicopedia !== undefined)
       unsafeWindow.Nicopedia.decorateLinks();
     decorateLinks();
