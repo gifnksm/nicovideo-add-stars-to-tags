@@ -448,10 +448,30 @@ unsafeWindow.finishTagEdit = function(url) {
 };
 
 (function() {
-   AllTags._cacheDomainHTML = document.getElementById('video_tags').innerHTML;
-   if (AllTags.showAll)
-     refreshTagLinks();
-   else
+   var container = document.getElementById('video_tags');
+   AllTags._cacheDomainHTML = container.innerHTML;
+   if (AllTags.showAll) {
+     let refreshFlag = false;
+     function refresh() {
+       if (refreshFlag)
+         return;
+       setTimeout(refreshTagLinks, 0);
+       refreshFlag = true;
+     }
+     container.addEventListener(
+       'DOMNodeInserted',
+       function inserted(e) {
+         var t = e.target;
+         if (t.nodeName !== 'A' || t.title === undefined ||
+             t.title.indexOf('大百科') !== 0)
+           return;
+         container.removeEventListener('DOMNodeInserted', inserted, false);
+         refresh();
+       }, false);
+     // 20秒でタイムアウト
+     setTimeout(refresh, 200000);
+   } else {
      decorateLinks();
+   }
  })();
 
