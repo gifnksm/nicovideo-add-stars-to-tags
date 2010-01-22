@@ -107,11 +107,11 @@ const SelectionMenuClassName = '_GM_tag_selection_menu';
 const DescClassName = '_GM_tag_desc';
 GM_addStyle(<><![CDATA[
   ._GM_tag_link_selected_and {
-    -moz-outline: 2px solid red;
+    outline: 2px solid red;
     -moz-outline-radius: 5px;
   }
   ._GM_tag_link_selected_minus {
-    -moz-outline: 2px solid blue;
+    outline: 2px solid blue;
     -moz-outline-radius: 5px;
   }
   ._GM_tag_selection_menu {
