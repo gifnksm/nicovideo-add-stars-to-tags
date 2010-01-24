@@ -468,8 +468,8 @@ unsafeWindow.finishTagEdit = function(url) {
          container.removeEventListener('DOMNodeInserted', inserted, false);
          refresh();
        }, false);
-     // 20秒でタイムアウト
-     setTimeout(refresh, 200000);
+     // 10秒でタイムアウト
+     setTimeout(refresh, 10000);
    } else {
      decorateLinks();
    }
