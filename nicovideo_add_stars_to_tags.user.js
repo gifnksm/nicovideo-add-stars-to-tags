@@ -12,47 +12,47 @@ Array.prototype.include = function(x) this.indexOf(x) != -1;
 
 // DOM要素を結合する。引数はScalaのmkString風
 Array.prototype.joinDOM = function() {
-  var sep, head, tail;
-  switch (arguments.length) {
-  case 0: [head, sep, tail] = [null, null, null]; break;
-  case 1: [sep] = arguments; [head, tail] = [null, null]; break;
-  case 3: [head, sep, tail] = arguments; break;
+  var [sep, head, tail] = [null, null, null],
+      arg = Array.map(arguments, convertToDOM);
+
+  switch(arg.length) {
+  case 0: break;
+  case 1: [sep] = arg; break;
+  case 3: [head, sep, tail] = arg; break;
   default: throw new Error('invalid arguments');
   }
 
   var df = document.createDocumentFragment();
-  function append(elem) {
-    if (elem === null)
-      return;
-    if (elem instanceof String || typeof elem == 'string') {
-      elem = document.createTextNode(elem);
-    } else if (elem instanceof XML) {
-      elem = e4xToDOM(elem);
-    }
-    df.appendChild(elem);
+  function append(e, clone) {
+    if (e !== null)
+      df.appendChild(clone ? e.cloneNode(true) : e);
   }
 
   append(head);
-  this.forEach( function(elem, i) { if (i > 0) { append(sep); } append(elem); });
+  for (let [i, elem] in Iterator(this)) {
+    if (i > 0) append(sep, true);
+    append(convertToDOM(elem));
+  }
   append(tail);
+
   return df;
 };
 
 // class関連関数
-function hasClassName(elem, className) {
-  return elem.className.split(/\s+/).indexOf(className) != -1;
-}
-function addClassName(elem, className) {
-  if (!hasClassName(elem))
-    elem.className += ' ' + className;
-}
-function removeClassName(elem, className) {
-  elem.className = elem.className.split(/\s+/).filter(
-    function(exist_name) exist_name != className).join(' ');
-}
 function setClassName(elem, className, flag) {
-  if (flag) addClassName(elem, className);
-  else removeClassName(elem, className);
+  if (flag) elem.classList.add(className);
+  else elem.classList.remove(className);
+}
+
+// オブジェクトをDOMノードに変換する
+function convertToDOM(elem) {
+  if (elem === null)
+    return null;
+  if (elem instanceof String || typeof elem === 'string')
+    return document.createTextNode(elem);
+  if (elem instanceof XML)
+    return e4xToDOM(elem);
+  return elem;
 }
 
 // XML (E4X)からDOM Nodeへの変換
@@ -75,6 +75,21 @@ function e4xToDOM(xml, xmlns) {
   return fragment.childNodes.length > 1 ? fragment : fragment.firstChild;
 }
 
+Object.memoize = function(obj, defs) {
+  function add(name, fun) {
+    obj.__defineGetter__(name, function() {
+                           var val = fun.call(this);
+                           this.__defineGetter__(name, function() val);
+                           return val;
+                         });
+  }
+  for (let name in defs) {
+    if (defs.hasOwnProperty(name)) {
+      add(name, defs[name]);
+    }
+  }
+};
+
 
 // Settings
 const VideoID = unsafeWindow.Video.id;
@@ -96,9 +111,8 @@ const CategoryTags = [
   "R-18"].join(' ').split(/\s+/);
 
 // "投稿者コメント アンケート チャット テスト 台灣"
-
 const LockedTags = unsafeWindow.Video.lockedTags;
-
+const DomainTags = unsafeWindow.Video.tags;
 
 // Resources
 const CategoryIcon1 = 'http://res.nimg.jp/img/watch/ctg.png';
@@ -123,6 +137,10 @@ GM_addStyle(<><![CDATA[
     outline: 2px solid blue;
     -moz-outline-radius: 5px;
   }
+  .__foreign_tag__ > a.nicopedia {
+    background-color: #eee;
+    color: blue;
+  },
   .__selection_menu__ {
     position: absolute;
     -moz-box-sizing: border-box;
@@ -133,6 +151,8 @@ GM_addStyle(<><![CDATA[
     -moz-border-radius: 5px;
     background-color: rgba(0, 0, 0, 0.7);
     color: white;
+    font-size: 12px;
+    line-height: 1.375;
   }
   .__selection_menu__ a {
     color: white;
@@ -144,10 +164,16 @@ GM_addStyle(<><![CDATA[
   .__commands__ {
     float: right;
   }
+  .__commands__ .__command_link__ {
+    color: #c00;
+  }
+  .__commands__ .__toggle_button__ {
+    vertical-align: middle;
+  }
   .__commands__ .__separator__ {
     color: #ccc;
   }
-  .__desc__ {
+  .__description__ {
     font-size: 0.8em;
   }
   #video_tags {
@@ -164,10 +190,39 @@ var TagLink = function(link) {
     new RegExp("^http://www\\.nicovideo\\.jp/tag/"), "");
   this.isLocked = LockedTags.include(this.name);
   this.isCategory = CategoryTags.include(this.name);
+  this.isDomain = DomainTags.include(this.name);
 
   this.resetSelection();
+
+  var self = this;
+  link.addEventListener('mousedown', function(e) self._mousedown(e), false);
+  link.addEventListener('click', function(e) self._click(e), false);
 };
 
+TagLink.ClassNames = {
+  And: className('selected_and'),
+  Minus: className('selected_minus'),
+  Icon: className('icon'),
+  Domain: className('domain_tag'),
+  Foreign: className('foreign_tag')
+};
+TagLink.Marks = {};
+Object.memoize(
+  TagLink.Marks, {
+    LockedCategory: function() {
+      return e4xToDOM(<img src={LockedCategoryIcon2}
+                           class={TagLink.ClassNames.Icon}
+                           alt="★カテゴリ？" />);
+    },
+    Locked: function() {
+      return e4xToDOM(<span style="color: #f90;">★</span>);
+    },
+    Category: function() {
+      return e4xToDOM(<img src={CategoryIcon2}
+                           class={TagLink.ClassNames.Icon}
+                           alt="カテゴリ？" />);
+    }
+  });
 TagLink.prototype = {
   get selectedAnd () { return this._selectedAnd; },
   set selectedAnd (selected) {
@@ -183,36 +238,53 @@ TagLink.prototype = {
     this._updateClassName();
     return this._selectedMinus;
   },
-  resetSelection: function() {
-    this.selectedAnd = this.selectedMinus = false;
-  },
+  resetSelection: function() { this.selectedAnd = this.selectedMinus = false; },
   _updateClassName: function() {
-    setClassName(this.link, className('selected_and'), this.selectedAnd);
-    setClassName(this.link, className('selected_minus'), this.selectedMinus);
+    setClassName(this.link, TagLink.ClassNames.And, this.selectedAnd);
+    setClassName(this.link, TagLink.ClassNames.Minus, this.selectedMinus);
+  },
+  _mousedown: function(e) {
+    // タグ複数選択時に，クリックと共に範囲選択されるのを防ぐ
+    if (e.altKey && e.ctrlKey)
+      e.preventDefault();
+  },
+  _click: function(e) {
+    // 選択モード or Ctrl+Alt+クリック の場合，タグを選択する
+    if (AllTags.selectionMode || (e.altKey && e.ctrlKey)) {
+      // マイナス検索 or アンド検索
+      if (e.shiftKey)
+        this.selectedMinus = !this.selectedMinus;
+      else
+        this.selectedAnd   = !this.selectedAnd;
+      AllTags.selectionCallbacks.forEach(function(f) f());
+      e.preventDefault();
+      return;
+    }
+
+    // クリックされた場合，タグ検索へ移動
+    // 一時的にhrefを書き換えることにより，タグの選択状況を反映させる
+    var link = this.link, originalHref = link.href;
+    link.href = AllTags.generateSearchURL(this);
+    setTimeout(function() link.href = originalHref, 0);
   },
   decorate: function() {
     var parent = this.link.parentNode,
-        icon = parent.querySelector('img[alt="カテゴリ"]'),
-        mark = null;
+        icon = parent.querySelector('img[alt="カテゴリ"]');
 
-    if (this.isLocked && this.isCategory) {
-      if (icon !== null) {
+    if (this.isDomain) parent.classList.add(TagLink.ClassNames.Domain);
+    else parent.classList.add(TagLink.ClassNames.Foreign);
+
+    if (icon !== null) {
+      if (this.isLocked) {
         icon.src = LockedCategoryIcon1;
         icon.alt = '★カテゴリ';
-      } else {
-        mark = e4xToDOM(<img src={LockedCategoryIcon2}
-                             class={className('icon')}
-                             alt="★カテゴリ？" />);
       }
-    } else if (this.isLocked) {
-      mark = e4xToDOM(<span style="color: #f90;">★</span>);
-    } else if (this.isCategory && icon === null) {
-      mark = e4xToDOM(<img src={CategoryIcon2}
-                           class={className('icon')}
-                           alt="カテゴリ？" />);
+      return;
     }
-    if (mark !== null)
-      parent.insertBefore(mark, this.link);
+
+    var name = (this.isLocked ? 'Locked' : '')+(this.isCategory ? 'Category' : '');
+    if (name !== '')
+      parent.insertBefore(TagLink.Marks[name].cloneNode(true), this.link);
   }
 };
 
@@ -221,27 +293,41 @@ TagLink.prototype = {
 // 全てのタグ(海外タグ含む)を管理するクラス
 var AllTags = [];
 AllTags.selectionMode = false;
-AllTags._showAll = GM_getValue('showAllTags', false);
+AllTags._showAll = false;
 AllTags.__defineGetter__('showAll', function() this._showAll);
 AllTags.__defineSetter__('showAll', function(value) {
                            value = Boolean(value);
                            GM_setValue('showAllTags', value);
                            return this._showAll = value;
                          });
-AllTags.showAll = GM_getValue('showAllTags', false);
 AllTags.selectionCallbacks = [];
-AllTags.updateLinks = function(links) {
+AllTags.container = null;
+AllTags.init = function(container) {
+  this.container = container;
+  this.cache = container.innerHTML;
+  this._updateLinks();
+};
+AllTags._updateLinks = function() {
+  var links = Array.slice(this.container.querySelectorAll('a[rel="tag"]') || []);
   this.length = links.length;
+  if (!this.showAll) {
+    let tags = links.map(function(l) l.textContent);
+    DomainTags.splice.apply(DomainTags, [0, DomainTags.length].concat(tags));
+  }
   links.forEach(function(link, i) this[i] = new TagLink(link), this);
-  this._setSelectionEvents(links);
+};
+AllTags.decorate = function() {
   this.forEach(function(link) link.decorate());
+  CommandLinks.init(this.container);
+  this.container.appendChild(SelectionMenu.menu);
 };
 AllTags.resetSelection = function() {
   this.forEach(function(link) link.resetSelection());
   this.selectionCallbacks.forEach(function(f) f());
 };
-AllTags.generateSearchAddr = function(clickedTag) {
-  var and = this.filter(function(t) t.selectedAnd || t == clickedTag)
+AllTags.generateSearchURL = function(clickedTag) {
+  var and = this.filter(
+      function(t) t.selectedAnd || (t === clickedTag && !t.selectedMinus))
                 .map(function(t) t.name),
     minus = this.filter(function(t) t.selectedMinus)
                 .map(function(t) '-' + t.name);
@@ -252,185 +338,44 @@ AllTags.generateSearchAddr = function(clickedTag) {
   // マイナス検索は先頭にあると機能しないので末尾にまとめる
   return 'http://www.nicovideo.jp/tag/' + and.concat(minus).join('+');
 },
-AllTags._setSelectionEvents = function() {
-  var callbacks = this.selectionCallbacks,
-      self = this;
-  this.forEach(
-    function(tag) {
-      tag.link.addEventListener('mousedown', function(e) mousedownFun(e), false);
-      tag.link.addEventListener('click', function(e) clickFun(e, tag), false);
-    });
-
-  // タグ複数選択時に，クリックと共に範囲選択されるのを防ぐ
-  function mousedownFun(e) { if (e.altKey && e.ctrlKey) e.preventDefault(); }
-
-  function clickFun(e, tag) {
-    // 選択モード or Ctrl+Alt+クリック の場合，タグを選択する
-    if (self.selectionMode || (e.altKey && e.ctrlKey)) {
-      // マイナス検索 or アンド検索
-      if (e.shiftKey)
-        tag.selectedMinus = !tag.selectedMinus;
-      else
-        tag.selectedAnd   = !tag.selectedAnd;
-
-      callbacks.forEach(function(f) f());
-      e.preventDefault();
-      return;
-    }
-
-    // クリックされた場合，タグ検索へ移動
-    // 一時的にhrefを書き換えることにより，タグの選択状況を反映させる
-    var originalHref = tag.link.href;
-    tag.link.href = self.generateSearchAddr(tag);
-    setTimeout(function() tag.link.href = originalHref, 0);
-  }
-};
 AllTags._cacheAllHTML = null;
 AllTags._cacheDomainHTML = null;
 AllTags.__defineGetter__(
-  'innerHTMLCache',
+  'cache',
   function() AllTags.showAll ? this._cacheAllHTML : this._cacheDomainHTML);
 AllTags.__defineSetter__(
-  'innerHTMLCache',
+  'cache',
   function(value) AllTags.showAll
     ? this._cacheAllHTML = value
     : this._cacheDomainHTML = value);
-AllTags.clearInnerHTMLCache = function() {
+AllTags.clearCache = function() {
+  this.cache = null;
+};
+AllTags.clearAllCache = function() {
   this._cacheAllHTML = this._cacheDomainHTML = null;
 };
+AllTags._update = function(html, callback) {
+  this.cache = this.container.innerHTML = html;
+  this._updateLinks();
 
-function setAttr(elem, attr) {
-  for (let name in attr) {
-    if (attr.hasOwnProperty(name))
-      elem.setAttribute(name, attr[name]);
-  }
-}
+  // タグの更新後，大百科のアイコンが付かないニコニコ動画側のバグ(？)への対処
+  this.forEach(this.container.querySelectorAll('[rel="tag"]:not(.nicopedia)'),
+               function(link) { link.classList.add('nicopedia'); });
 
-function createCommandLink(text, fun, attr) {
-  var elem = e4xToDOM(<a href="javascript: void(0);">{text}</a>);
-  setAttr(elem, attr);
-  if (fun instanceof Function)
-    elem.addEventListener('click', fun, false);
-  return elem;
-}
+  if (unsafeWindow.Nicopedia !== undefined)
+    unsafeWindow.Nicopedia.decorateLinks();
 
-function createToggleButton(init, fun, attr) {
-  var elem = e4xToDOM(<input type="checkbox"/>);
-  setAttr(elem, attr);
-  elem.checked = init;
-  if (fun instanceof Function)
-    elem.addEventListener('change', function() { fun(elem.checked); },
-                          false);
-  return elem;
-}
-
-
-function createSelectionMenu() {
-  if (createSelectionMenu._menu !== undefined)
-    return createSelectionMenu._menu;
-
-  var search = createCommandLink('選択したタグで検索'),
-      reset = createCommandLink('選択解除',
-                                function()  AllTags.resetSelection()),
-      desc = e4xToDOM(
-          <span class={className('desc')}>
-          タグをクリックで <span class={className('selected_and')}>選択</span>、
-          Shift+クリックで <span class={className('selected_minus')}>マイナス選択</span>
-        </span>),
-      menu = e4xToDOM(
-          <div class={className('selection_menu')} style="display: none;"/>);
-
-  AllTags.selectionCallbacks.push(
-    function() search.href = AllTags.generateSearchAddr());
-  menu.appendChild([search, reset, desc].joinDOM(' | '));
-
-  createSelectionMenu._menu = menu;
-  return menu;
-}
-
-function decorateLinks() {
-  var p = document.querySelector('#video_tags > p'),
-      edit = p === null ? null
-                        : p.querySelector('a[href^="javascript:startTagEdit"]'),
-      refresh = createCommandLink('更新', function() {
-                                    AllTags.innerHTMLCache = null;
-                                    refreshTagLinks();
-                                  },
-                                  {style: 'color: #c00;'}),
-      links, container;
-
-  if(p !== null && edit !== null) {
-    function genToggle(label, init, fun) {
-      var elem = document.createElement('label');
-      var toggle = createToggleButton(
-        init, fun,
-        { style: 'vertical-align: middle;' });
-      elem.appendChild([toggle, XML(label)].joinDOM());
-      return elem;
-    }
-
-    AllTags.updateLinks(Array.slice(p.querySelectorAll('a[rel="tag"]')));
-
-    container = edit.parentNode;
-    let menu = createSelectionMenu();
-    container.parentNode.appendChild(menu);
-
-    edit.textContent = "編集";
-    links = [edit,
-             refresh,
-             genToggle('海外タグ', AllTags.showAll,
-                       function(value) {
-                         AllTags.showAll = value;
-                         refreshTagLinks();
-                       }),
-             genToggle('複数選択', AllTags.selectionMode,
-                       function(value) {
-                         AllTags.selectionMode = value;
-                         menu.style.display = value ? '' : 'none';
-                       })];
-  }
-  else {
-    // タグを更新できなかったとき。(混雑しています、など)
-    if (p === null)
-      p = document.getElementById('video_tags');
-    container = document.createElement('nobr');
-    p.appendChild(container);
-    links = [refresh];
-  }
-
-  container.className = className('commands');
-  container.appendChild(
-    links.joinDOM('[ ', <span class={className('separator')}> | </span>, ' ]'));
-}
-
-
-
-function refreshTagLinks(callback) {
-  var video_tags = document.getElementById('video_tags');
-
-  function updateInnerHTML(html) {
-    AllTags.innerHTMLCache = html;
-    video_tags.innerHTML = html;
-    if (callback instanceof Function)
-      callback();
-
-    // タグの更新後，大百科のアイコンが付かないニコニコ動画側のバグ(？)への対処
-    Array.forEach(
-      video_tags.querySelectorAll('[rel="tag"]:not(.nicopedia)'),
-      function(link) { console.log(link); link.className += ' nicopedia'; });
-
-    if (unsafeWindow.Nicopedia !== undefined)
-      unsafeWindow.Nicopedia.decorateLinks();
-    decorateLinks();
-  }
-
-
-  if (AllTags.innerHTMLCache !== null) {
-    updateInnerHTML(AllTags.innerHTMLCache);
+  this.decorate();
+  if (callback instanceof Function)
+    callback();
+},
+AllTags.refresh = function(callback) {
+  if (this.cache !== null) {
+    this._update(this.cache, callback);
     return;
   }
-  video_tags.innerHTML = '<img src="img/watch/tool_loading.gif" alt="処理中">';
-
+  this.container.innerHTML = '<img src="img/watch/tool_loading.gif" alt="処理中">';
+  var self = this;
   GM_xmlhttpRequest(
     {
       method: 'POST',
@@ -440,10 +385,158 @@ function refreshTagLinks(callback) {
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
       },
       data: 'cmd=tags' + (AllTags.showAll ? '&all=1' : ''),
-      onload: function(response) updateInnerHTML(response.responseText)
+      onload: function(response) self._update(response.responseText, callback)
     });
-}
+};
 
+
+var HTMLUtil = {
+  ClassNames: {
+    CommandLink: className('command_link'),
+    ToggleButton: className('toggle_button'),
+    ToggleLabel: className('toggle_label')
+  },
+  setAttr: function(elem, attr) {
+    for (let name in attr) {
+      if (attr.hasOwnProperty(name))
+        elem.setAttribute(name, attr[name]);
+    }
+  },
+  _initElem: function(e4x, attr, className, type, fun) {
+    var elem = e4xToDOM(e4x);
+    this.setAttr(elem, attr);
+    // クラス名を追加する (setAttr内でクラスが追加された場合上書きしないように)
+    elem.classList.add(className);
+
+    if (fun instanceof Function)
+      elem.addEventListener(type, fun, false);
+    return elem;
+  },
+  createCommandLink: function(text, fun, attr) {
+    return this._initElem(
+      <a href="javascript: void(0);">{text}</a>,
+      attr, this.ClassNames.CommandLink,
+      'click', fun);
+  },
+  createToggleButton: function(init, fun, attr) {
+    var elem = this._initElem(
+      <input type="checkbox"/>,
+      attr, this.ClassNames.ToggleButton,
+      'change', function() fun(this.checked)
+    );
+    elem.checked = init;
+    return elem;
+  },
+  createLabeledToggle: function(label, init, fun) {
+    var elem = e4xToDOM(<label class={this.ClassNames.ToggleLabel} />);
+    elem.appendChild([this.createToggleButton(init, fun),
+                      XML(label)].joinDOM());
+    return elem;
+  }
+};
+
+var SelectionMenu = {
+  ClassNames: {
+    Description: className('description'),
+    Menu: className('selection_menu')
+  },
+  show: function() { this.menu.style.display = ''; },
+  hide: function() { this.menu.style.display = 'none'; },
+  setVisible: function(value) {
+    if (value) SelectionMenu.show();
+    else SelectionMenu.hide();
+  }
+};
+Object.memoize(
+  SelectionMenu, {
+    search: function() {
+      var link = HTMLUtil.createCommandLink('選択したタグで検索');
+      AllTags.selectionCallbacks.push(
+        function() link.href = AllTags.generateSearchURL());
+      return link;
+    },
+    reset: function() {
+      return HTMLUtil.createCommandLink(
+        '選択解除', function() AllTags.resetSelection());
+    },
+    description: function() {
+      return e4xToDOM(
+        <span class={this.ClassNames.Description}>
+        タグをクリックで <span class={TagLink.ClassNames.And}>選択</span>、
+        Shift+クリックで <span class={TagLink.ClassNames.Minus}>マイナス選択</span>
+        </span>);
+    },
+    menu: function() {
+      var menu = e4xToDOM(
+          <div class={this.ClassNames.Menu} style="display: none;"/>);
+      menu.appendChild([this.search, this.reset, this.description].joinDOM(' | '));
+      return menu;
+    }
+  }
+);
+
+var CommandLinks = {
+  ClassNames: {
+    Commands: className('commands'),
+    Separator: className('separator')
+  },
+  init: function(tagsContainer) {
+    tagsContainer = tagsContainer.firstElementChild;
+    var edit = null, commandsContainer, links;
+
+    if (tagsContainer !== null) {
+      edit = tagsContainer.querySelector('a[href^="javascript:startTagEdit"]');
+    }
+    if (edit !== null) {
+      edit.textContent = "編集";
+      edit.classList.add(HTMLUtil.ClassNames.CommandLink);
+      edit.removeAttribute('style');
+
+      commandsContainer = edit.parentNode;
+      links = [edit, this.refresh, this.foreign, this.select];
+    } else {
+      // タグを更新できなかったとき。(混雑しています、など)
+      if (tagsContainer === null)
+        tagsContainer = video_tags;
+      commandsContainer = document.createElement('nobr');
+      tagsContainer.appendChild(commandsContainer);
+      links = [this.refresh];
+    }
+
+    commandsContainer.classList.add(this.ClassNames.Commands);
+    commandsContainer.appendChild(
+      links.joinDOM('[ ',
+                    <span class={this.ClassNames.Separator}> | </span>,
+                    ' ]'));
+  }
+};
+Object.memoize(
+  CommandLinks, {
+    refresh: function() {
+      return HTMLUtil.createCommandLink(
+        '更新', function() {
+          AllTags.clearCache();
+          AllTags.refresh();
+        });
+    },
+    foreign: function() {
+      return HTMLUtil.createLabeledToggle(
+        '海外タグ', AllTags.showAll,
+        function(value) {
+          AllTags.showAll = value;
+          AllTags.refresh();
+        });
+    },
+    select: function() {
+      return HTMLUtil.createLabeledToggle(
+        '複数選択', AllTags.selectionMode,
+        function(value) {
+          AllTags.selectionMode = value;
+          SelectionMenu.setVisible(value);
+        });
+    }
+  }
+);
 
 unsafeWindow.finishTagEdit = function(url) {
   var editForm = document.getElementById('tag_edit_form');
@@ -451,42 +544,56 @@ unsafeWindow.finishTagEdit = function(url) {
   if(editForm !== null)
     editForm.innerHTML = '<img src="img/watch/tool_loading.gif" alt="処理中">';
 
-  AllTags.clearInnerHTMLCache();
-  setTimeout(function() {
-               refreshTagLinks(
-                 function() {
-                   document.getElementById('video_controls').style.display = '';
-                   if(editForm !== null)
-                     editForm.parentNode.removeChild(editForm);
-                 });
-             }, 0);
+  AllTags.clearAllCache();
+  setTimeout(
+    function() {
+      AllTags.refresh(
+        function() {
+          document.getElementById('video_controls').style.display = '';
+          if(editForm !== null)
+            editForm.parentNode.removeChild(editForm);
+        });
+    }, 0);
 };
 
+// 初期化
 (function() {
-   var container = document.getElementById('video_tags');
-   AllTags._cacheDomainHTML = container.innerHTML;
-   if (AllTags.showAll) {
-     let refreshFlag = false;
-     function refresh() {
-       if (refreshFlag)
-         return;
-       setTimeout(refreshTagLinks, 0);
-       refreshFlag = true;
-     }
-     container.addEventListener(
-       'DOMNodeInserted',
-       function inserted(e) {
-         var t = e.target;
-         if (t.nodeName !== 'A' || t.title === undefined ||
-             t.title.indexOf('大百科') !== 0)
-           return;
-         container.removeEventListener('DOMNodeInserted', inserted, false);
-         refresh();
-       }, false);
-     // 10秒でタイムアウト
-     setTimeout(refresh, 10000);
-   } else {
-     decorateLinks();
+   AllTags.init(document.getElementById('video_tags'));
+   AllTags.showAll = GM_getValue('showAllTags', AllTags.showAll);
+
+   // 海外タグを表示しない場合
+   if (!AllTags.showAll) {
+     AllTags.decorate();
+     return;
+   }
+
+   // タグがついていない動画の場合，大百科の要素追加を待たず即座に更新
+   if (AllTags.length === 0) {
+     AllTags.refresh();
+     return;
+   }
+
+   // 大百科アイコン追加後に更新
+   AllTags.container.addEventListener('DOMNodeInserted', inserted, false);
+   // 10秒でタイムアウト
+   setTimeout(refresh, 10000);
+
+   // 大百科アイコン挿入後1回だけ更新する
+   function refresh() {
+     if (refresh.finished) return;
+     refresh.finished = true;
+     AllTags.container.removeEventListener('DOMNodeInserted', inserted, false);
+     setTimeout(function() AllTags.refresh(), 0);
+   }
+   refresh.finished = false;
+
+   // 追加された要素が大百科アイコンなら更新する
+   function inserted(e) {
+     var t = e.target;
+     if (t.nodeName !== 'A' || t.title === undefined ||
+         t.title.indexOf('大百科') !== 0)
+       return;
+     refresh();
    }
  })();
 
