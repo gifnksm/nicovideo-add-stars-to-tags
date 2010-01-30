@@ -80,13 +80,21 @@ function e4xToDOM(xml, xmlns) {
 const VideoID = unsafeWindow.Video.id;
 const RequestURL = 'http://www.nicovideo.jp/tag_edit/' + VideoID;
 
-const CategoryTags =
-  "エンターテイメント 音楽 スポーツ\
-  動物 ファッション 料理 日記 自然 科学 歴史 ラジオ ニコニコ動画講座\
-  政治\
-  歌ってみた 演奏してみた 踊ってみた 描いてみた ニコニコ技術部\
-  アニメ ゲーム\
-  アイドルマスター 東方 VOCALOID その他 R-18".split(/\s+/);
+const CategoryTags = [
+  // エンタ・音楽・スポ
+  "エンターテイメント 音楽 スポーツ",
+  // 教養・生活
+  "動物 ファッション 料理 日記 自然 科学 歴史 ラジオ ニコニコ動画講座",
+  // 政治
+  "政治",
+  // やってみた
+  "歌ってみた 演奏してみた 踊ってみた 描いてみた ニコニコ技術部",
+  // アニメ・ゲーム
+  "アニメ ゲーム",
+  // 殿堂入りカテゴリ
+  "アイドルマスター 東方 VOCALOID 例のアレ その他",
+  "R-18"].join(' ').split(/\s+/);
+
 // "投稿者コメント アンケート チャット テスト 台灣"
 
 const LockedTags = unsafeWindow.Video.lockedTags;
