@@ -108,21 +108,22 @@ const LockedCategoryIcon1 = 'data:image/png,%89PNG%0D%0A%1A%0A%00%00%00%0DIHDR%0
 
 const LockedCategoryIcon2 = 'data:image/png,%89PNG%0D%0A%1A%0A%00%00%00%0DIHDR%00%00%00%1B%00%00%00%09%08%06%00%00%00%C3%CAW%C5%00%00%00%04gAMA%00%00%AF%C87%05%8A%E9%00%00%00%09pHYs%00%00%0E%C3%00%00%0E%C3%01%C7o%A8d%00%00%00%19tEXtSoftware%00Adobe%20ImageReadyq%C9e%3C%00%00%00%D1IDAT8Oc%FC%0F%04%8C%8C%0B%19h%0D%FE%FF%8Fg%60%A2%A6E%FF%3F%25%80%DD%0C%A3%91%3D%00%B2%87%91%81a%C1%7F%84%E0%2B%86%09k.0%AC%0Aqc8%86%A4%12%A4%99%91o%01%5C%04%DD0d9%7C!%84j%99%D9.%86%DB%7BN1lu%A9a(8%05%D1F%AC%C1%C8%EA%40%96%C3%1C%88%E6P%90%CF%8A%FEo%FB%C4%F0%FF%3F%0Av%FC%9F%06%F6%F5%02%B08%3A%8D%AC%16%12%3A%B8%D5%C2%E4%98%20%EE%D7c%F0%E2%EBb%98x%17%1A%08w%A3%18%AC%F9%E2%19f%E1%08%13X%B0%81hb%83%10d%14%D42%20%CB%EC%02%83%F7%DD%22%B0%E6%F4%BB%A7%18%C2%CCHK%9F%A0%E0B%0FJt%13%D0%12%08i%16%90%AA%9A%09%94%FE%E9%01%40%F6%00%00%07C%84)%FAA%FCS%00%00%00%00IEND%AEB%60%82';
 
+function className(name) '_GM_tag_' + name;
 
-const SelectedAndClassName = '_GM_tag_link_selected_and';
-const SelectedMinusClassName = '_GM_tag_link_selected_minus';
-const SelectionMenuClassName = '_GM_tag_selection_menu';
-const DescClassName = '_GM_tag_desc';
 GM_addStyle(<><![CDATA[
-  ._GM_tag_link_selected_and {
+  .__icon__ {
+    vertical-align: middle;
+    margin-right: 2px;
+  }
+  .__selected_and__ {
     outline: 2px solid red;
     -moz-outline-radius: 5px;
   }
-  ._GM_tag_link_selected_minus {
+  .__selected_minus__ {
     outline: 2px solid blue;
     -moz-outline-radius: 5px;
   }
-  ._GM_tag_selection_menu {
+  .__selection_menu__ {
     position: absolute;
     -moz-box-sizing: border-box;
     top: -2.5em;
@@ -133,20 +134,26 @@ GM_addStyle(<><![CDATA[
     background-color: rgba(0, 0, 0, 0.7);
     color: white;
   }
-  ._GM_tag_selection_menu a {
+  .__selection_menu__ a {
     color: white;
   }
-  ._GM_tag_selection_menu ._GM_tag_link_selected_and,
-  ._GM_tag_selection_menu ._GM_tag_link_selected_minus {
+  .__selection_menu__ .__selected_and__,
+  .__selection_menu__ .__selected_minus__ {
     margin: 0 3px;
   }
-  ._GM_tag_desc {
+  .__commands__ {
+    float: right;
+  }
+  .__commands__ .__separator__ {
+    color: #ccc;
+  }
+  .__desc__ {
     font-size: 0.8em;
   }
   #video_tags {
     position: relative;
   }
-]]></>);
+]]></>.toString().replace(/__(.+?)__/g, function(_, name) className(name)));
 
 
 // 各タグをタグ検索ページへのリンクと関連付けて管理するクラス
@@ -180,8 +187,8 @@ TagLink.prototype = {
     this.selectedAnd = this.selectedMinus = false;
   },
   _updateClassName: function() {
-    setClassName(this.link, SelectedAndClassName, this.selectedAnd);
-    setClassName(this.link, SelectedMinusClassName, this.selectedMinus);
+    setClassName(this.link, className('selected_and'), this.selectedAnd);
+    setClassName(this.link, className('selected_minus'), this.selectedMinus);
   },
   decorate: function() {
     var parent = this.link.parentNode,
@@ -194,14 +201,14 @@ TagLink.prototype = {
         icon.alt = '★カテゴリ';
       } else {
         mark = e4xToDOM(<img src={LockedCategoryIcon2}
-                             style="vertical-align: middle; margin-right: 2px;"
+                             class={className('icon')}
                              alt="★カテゴリ？" />);
       }
     } else if (this.isLocked) {
       mark = e4xToDOM(<span style="color: #f90;">★</span>);
     } else if (this.isCategory && icon === null) {
       mark = e4xToDOM(<img src={CategoryIcon2}
-                           style="vertical-align: middle; margin-right: 2px;"
+                           class={className('icon')}
                            alt="カテゴリ？" />);
     }
     if (mark !== null)
@@ -326,12 +333,12 @@ function createSelectionMenu() {
       reset = createCommandLink('選択解除',
                                 function()  AllTags.resetSelection()),
       desc = e4xToDOM(
-        <span class={DescClassName}>
-          タグをクリックで <span class={SelectedAndClassName}>選択</span>、
-          Shift+クリックで <span class={SelectedMinusClassName}>マイナス選択</span>
+          <span class={className('desc')}>
+          タグをクリックで <span class={className('selected_and')}>選択</span>、
+          Shift+クリックで <span class={className('selected_minus')}>マイナス選択</span>
         </span>),
       menu = e4xToDOM(
-          <div class={SelectionMenuClassName} style="display: none;"/>);
+          <div class={className('selection_menu')} style="display: none;"/>);
 
   AllTags.selectionCallbacks.push(
     function() search.href = AllTags.generateSearchAddr());
@@ -391,9 +398,9 @@ function decorateLinks() {
     links = [refresh];
   }
 
-  container.style.cssFloat = 'right';
+  container.className = className('commands');
   container.appendChild(
-    links.joinDOM('[ ', <span style="color: #ccc;"> | </span>, ' ]'));
+    links.joinDOM('[ ', <span class={className('separator')}> | </span>, ' ]'));
 }
 
 
