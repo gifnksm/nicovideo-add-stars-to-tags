@@ -76,20 +76,18 @@ function e4xToDOM(xml, xmlns) {
 }
 
 Object.memoize = function(obj, defs) {
-  function add(name, fun) {
-    obj.__defineGetter__(name, function() {
-                           var val = fun.call(this);
-                           this.__defineGetter__(name, function() val);
-                           return val;
+  function add(key, getter) {
+    obj.__defineGetter__(key, function() {
+                           delete this[key];
+                           return this[key] = getter.call(this);
                          });
   }
-  for (let name in defs) {
-    if (defs.hasOwnProperty(name)) {
-      add(name, defs[name]);
+  for (let key in defs) {
+    if (defs.hasOwnProperty(key)) {
+      add(key, defs[key]);
     }
   }
 };
-
 
 // Settings
 const VideoID = unsafeWindow.Video.id;
