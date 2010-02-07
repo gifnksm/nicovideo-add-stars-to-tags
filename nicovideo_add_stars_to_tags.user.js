@@ -140,7 +140,7 @@ GM_addStyle(<><![CDATA[
   .__foreign_tag__ > a.nicopedia {
     background-color: #eee;
     color: blue;
-  },
+  }
   .__selection_menu__ {
     position: absolute;
     -moz-box-sizing: border-box;
