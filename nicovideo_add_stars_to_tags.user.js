@@ -320,7 +320,7 @@ AllTags.generateSearchURL = function(clickedTag) {
   if (tags.length == 0)
     return 'javascript: void(0);';
   return 'http://www.nicovideo.jp/tag/' + tags.join('+');
-},
+};
 AllTags._cacheObj = { all: null, domain: null };
 AllTags.__defineGetter__('_cacheName', function() this.showAll ? 'all' : 'domain');
 AllTags.__defineGetter__('_cache', function() this._cacheObj[this._cacheName]);
