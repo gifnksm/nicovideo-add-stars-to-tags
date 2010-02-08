@@ -9,6 +9,26 @@
  * ユーティリティ関数群
  */
 Array.prototype.include = function(x) this.indexOf(x) != -1;
+Array.prototype.replace = function(newVal) {
+  this.splice.apply(this, [0, this.length].concat(newVal));
+};
+
+Array.prototype.partition = function(fun, thisp) {
+  if (typeof fun != 'function')
+    throw new TypeError();
+
+  var res1 = [], res2 = [];
+  for (var i = 0, len = this.length; i < len; i++) {
+    if (i in this) {
+      if (fun.call(thisp, this[i], i, this))
+        res1.push(this[i]);
+      else
+        res2.push(this[i]);
+    }
+  }
+  return [res1, res2];
+};
+
 
 // DOM要素を結合する。引数はScalaのmkString風
 Array.prototype.joinDOM = function() {
@@ -106,10 +126,12 @@ const CategoryTags = [
   // 殿堂入りカテゴリ
   "アイドルマスター 東方 VOCALOID 例のアレ その他",
   "R-18"].join(' ').split(/\s+/);
-
 // "投稿者コメント アンケート チャット テスト 台灣"
-const LockedTags = unsafeWindow.Video.lockedTags;
-const DomainTags = unsafeWindow.Video.tags;
+
+// prototype拡張された配列にする
+const LockedTags = [].concat(unsafeWindow.Video.lockedTags);
+const DomainTags = [].concat(unsafeWindow.Video.tags);
+const ForeignTags = [];
 
 // Resources
 const CategoryIcon1 = 'http://res.nimg.jp/img/watch/ctg.png';
@@ -328,14 +350,26 @@ AllTags.__defineSetter__('_cache', function(v) this._cacheObj[this._cacheName] =
 AllTags.clearCache = function() { this._cache = null; };
 AllTags.clearAllCache = function() { this._cacheObj = { all: null, domain: null}; };
 AllTags._updateCache = function() { this._cache = this.container.innerHTML; };
+AllTags._showingForeignTags = false;
 AllTags._updateTags = function() {
   var links = Array.slice(this.container.querySelectorAll('a[rel="tag"]') || []);
-  this.length = links.length;
+  var tags = links.map(function(l) l.textContent);
   if (!this.showAll) {
-    let tags = links.map(function(l) l.textContent);
-    DomainTags.splice.apply(DomainTags, [0, DomainTags.length].concat(tags));
+    DomainTags.replace(tags);
+    this._showingForeignTags = false;
+  } else {
+    let ftags = tags.filter(function(t) !DomainTags.include(t));
+    // 海外タグ表示→海外タグ表示と遷移した場合
+    if (this._showingForeignTags) {
+      let oldtags = this.map(function(t) t.name), newtags = [];
+      // 海外タグと判定されたもののうち，新しく登場したものは国内タグと判定する
+      [ftags, newtags] = ftags.partition(function(t) oldtags.include(t));
+      DomainTags.push.apply(DomainTags, newtags);
+    }
+    this._showingForeignTags = true;
+    ForeignTags.replace(ftags);
   }
-  links.forEach(function(link, i) this[i] = new TagLink(link), this);
+  this.replace(links.map(function(link) new TagLink(link)));
 };
 AllTags.__defineSetter__(
   '_innerHTML', function(html) {
