@@ -1,0 +1,56 @@
+.__icon__ {
+  vertical-align: middle;
+  margin-right: 2px;
+}
+.__selected_and__ {
+  outline: 2px solid red;
+  -moz-outline-radius: 5px;
+}
+.__selected_minus__ {
+  outline: 2px solid blue;
+  -moz-outline-radius: 5px;
+}
+.__foreign_tag__ > a.nicopedia,
+     strong.__foreign_tag__
+{
+  background-color: #eee;
+  color: blue;
+}
+.__selection_menu__ {
+  position: absolute;
+  -moz-box-sizing: border-box;
+  top: -2.5em;
+  left: 0;
+  width: 100%;
+  padding: 0.5em 10px;
+  -moz-border-radius: 5px;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  font-size: 12px;
+  line-height: 1.375;
+}
+.__selection_menu__ a {
+  color: white;
+}
+.__selection_menu__ .__selected_and__,
+.__selection_menu__ .__selected_minus__ {
+        margin: 0 3px;
+     }
+.__commands__ {
+  float: right;
+}
+.__commands__ .__command_link__ {
+  color: #c00;
+}
+.__commands__ .__toggle_button__ {
+  vertical-align: middle;
+}
+.__commands__ .__separator__ {
+  color: #ccc;
+}
+.__description__ {
+  font-size: 0.8em;
+}
+#video_tags {
+  position: relative;
+}

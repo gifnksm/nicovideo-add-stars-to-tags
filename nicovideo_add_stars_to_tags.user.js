@@ -3,6 +3,11 @@
 // @namespace      http://d.hatena.ne.jp/gifnksm/
 // @description    Add stars that represents their uploader set the tags unmodifiable.
 // @include        http://www.nicovideo.jp/watch/*
+// @resource       style http://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/master/style.css
+// @resource       ctg1 http://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/master/ctg1.png
+// @resource       ctg2 http://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/master/ctg2.png
+// @resource       ctg1lock http://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/master/ctg1lock.png
+// @resource       ctg2lock http://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/master/ctg2lock.png
 // ==/UserScript==
 
 /*
@@ -134,73 +139,15 @@ const DomainTags = [].concat(unsafeWindow.Video.tags);
 const ForeignTags = [];
 
 // Resources
-const CategoryIcon1 = 'http://res.nimg.jp/img/watch/ctg.png';
-const CategoryIcon2 = 'data:image/png,%89PNG%0D%0A%1A%0A%00%00%00%0DIHDR%00%00%00%15%00%00%00%09%08%06%00%00%00%DD%03gv%00%00%00%04gAMA%00%00%AF%C87%05%8A%E9%00%00%00%09pHYs%00%00%0E%C3%00%00%0E%C3%01%C7o%A8d%00%00%00%19tEXtSoftware%00Adobe%20ImageReadyq%C9e%3C%00%00%00pIDAT(S%AD%92%01%0A%800%0C%03%DB%7D%D4%AF%E9K%AB%112b)n%E8%0Ac%20%E9%F5%A4%F3%B8%CA%FD%B0U%15%B1Y%FB%02D%23%8A%B7%0A%81%E7f%7B%F0%23B%3A%247%CD%0At%E8%2C%40s%18B%11%15j%B4%A4E6E%98%07%D9%FB%F7%06%3B%E8%D0jQ%3Ah%04%D2%FEWh5H%ADi%9Es%8FE%ADzV%ADz%16%7F%E0%E0%9D%3C%94%3B%E8%AC%40J9%00%00%00%00IEND%AEB%60%82';
-
-const LockedCategoryIcon1 = 'data:image/png,%89PNG%0D%0A%1A%0A%00%00%00%0DIHDR%00%00%00%1B%00%00%00%09%08%06%00%00%00%C3%CAW%C5%00%00%00%04gAMA%00%00%AF%C87%05%8A%E9%00%00%00%09pHYs%00%00%0E%C3%00%00%0E%C3%01%C7o%A8d%00%00%00%19tEXtSoftware%00Adobe%20ImageReadyq%C9e%3C%00%00%00%C3IDAT8Oc%FC%0F%04g%19%19%19h%0D%8C%FF%FFg%60%A2%A6E%C6%9F%20N%86%D1%C8%1E%00%D9%C3x%86%81%E1%3F%B2%A0%D4%1A%06%86%F7!%0C%0C%DF%91%04A%9A%CF%F2!%04%D0%0DC%96%C3%17B%A8%96%9910h%EF%01Z%E6%C2%C0%F0%EC%14vW%E22%18%D9%01%2050%07%22%3B%94%09%E6%12%25%A0%EB%8D%81%16q%00%05%24%814H%91%20%90%0D3%1C%DDg%20y%18%06%99%01%92\'%E4C%B8e%F7%80%8A%9F%DF%85Z%0D%A4%AF%01%F9%EFq%84%09%B2%03%08Y%80l%04%DC2%06%60%10%0A%02-%01i%BE%07%A4%05%81%7CR%00%B2%2Fa%3EE%D7%8F%91%40H%B1%80T%B5L%A0%F4O%0F%00%B2%07%00GEB%E3%1B%C3%F1%7D%00%00%00%00IEND%AEB%60%82';
-
-const LockedCategoryIcon2 = 'data:image/png,%89PNG%0D%0A%1A%0A%00%00%00%0DIHDR%00%00%00%1B%00%00%00%09%08%06%00%00%00%C3%CAW%C5%00%00%00%04gAMA%00%00%AF%C87%05%8A%E9%00%00%00%09pHYs%00%00%0E%C3%00%00%0E%C3%01%C7o%A8d%00%00%00%19tEXtSoftware%00Adobe%20ImageReadyq%C9e%3C%00%00%00%D1IDAT8Oc%FC%0F%04%8C%8C%0B%19h%0D%FE%FF%8Fg%60%A2%A6E%FF%3F%25%80%DD%0C%A3%91%3D%00%B2%87%91%81a%C1%7F%84%E0%2B%86%09k.0%AC%0Aqc8%86%A4%12%A4%99%91o%01%5C%04%DD0d9%7C!%84j%99%D9.%86%DB%7BN1lu%A9a(8%05%D1F%AC%C1%C8%EA%40%96%C3%1C%88%E6P%90%CF%8A%FEo%FB%C4%F0%FF%3F%0Av%FC%9F%06%F6%F5%02%B08%3A%8D%AC%16%12%3A%B8%D5%C2%E4%98%20%EE%D7c%F0%E2%EBb%98x%17%1A%08w%A3%18%AC%F9%E2%19f%E1%08%13X%B0%81hb%83%10d%14%D42%20%CB%EC%02%83%F7%DD%22%B0%E6%F4%BB%A7%18%C2%CCHK%9F%A0%E0B%0FJt%13%D0%12%08i%16%90%AA%9A%09%94%FE%E9%01%40%F6%00%00%07C%84)%FAA%FCS%00%00%00%00IEND%AEB%60%82';
+const CategoryIcon1 = GM_getResourceURL('ctg1');
+const CategoryIcon2 = GM_getResourceURL('ctg2');
+const LockedCategoryIcon1 = GM_getResourceURL('ctg1lock');
+const LockedCategoryIcon2 = GM_getResourceURL('ctg2lock');
 
 function className(name) '_GM_tag_' + name;
 
-GM_addStyle(<><![CDATA[
-  .__icon__ {
-    vertical-align: middle;
-    margin-right: 2px;
-  }
-  .__selected_and__ {
-    outline: 2px solid red;
-    -moz-outline-radius: 5px;
-  }
-  .__selected_minus__ {
-    outline: 2px solid blue;
-    -moz-outline-radius: 5px;
-  }
-  .__foreign_tag__ > a.nicopedia,
-  strong.__foreign_tag__
-  {
-    background-color: #eee;
-    color: blue;
-  }
-  .__selection_menu__ {
-    position: absolute;
-    -moz-box-sizing: border-box;
-    top: -2.5em;
-    left: 0;
-    width: 100%;
-    padding: 0.5em 10px;
-    -moz-border-radius: 5px;
-    background-color: rgba(0, 0, 0, 0.7);
-    color: white;
-    font-size: 12px;
-    line-height: 1.375;
-  }
-  .__selection_menu__ a {
-    color: white;
-  }
-  .__selection_menu__ .__selected_and__,
-  .__selection_menu__ .__selected_minus__ {
-    margin: 0 3px;
-  }
-  .__commands__ {
-    float: right;
-  }
-  .__commands__ .__command_link__ {
-    color: #c00;
-  }
-  .__commands__ .__toggle_button__ {
-    vertical-align: middle;
-  }
-  .__commands__ .__separator__ {
-    color: #ccc;
-  }
-  .__description__ {
-    font-size: 0.8em;
-  }
-  #video_tags {
-    position: relative;
-  }
-]]></>.toString().replace(/__(.+?)__/g, function(_, name) className(name)));
+GM_addStyle(
+  GM_getResourceText('style').replace(/__(.+?)__/g, function(_, name) className(name)));
 
 
 // 各タグをタグ検索ページへのリンクと関連付けて管理するクラス
