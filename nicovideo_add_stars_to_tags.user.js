@@ -156,7 +156,9 @@ GM_addStyle(<><![CDATA[
     outline: 2px solid blue;
     -moz-outline-radius: 5px;
   }
-  .__foreign_tag__ > a.nicopedia {
+  .__foreign_tag__ > a.nicopedia,
+  strong.__foreign_tag__
+  {
     background-color: #eee;
     color: blue;
   }
@@ -217,7 +219,6 @@ var TagLink = function(link) {
   link.addEventListener('mousedown', function(e) self._mousedown(e), false);
   link.addEventListener('click', function(e) self._click(e), false);
 };
-
 TagLink.ClassNames = {
   And: className('selected_and'),
   Minus: className('selected_minus'),
@@ -505,6 +506,15 @@ var CommandLinks = {
     edit.removeAttribute('style');
     return edit;
   },
+  get counter() {
+    if (AllTags.showAll)
+      return e4xToDOM(
+          <span><strong>{DomainTags.length}</strong>
+          +
+          <strong class={TagLink.ClassNames.Foreign}>{ForeignTags.length}</strong>
+          件</span>);
+    return e4xToDOM(<strong>{DomainTags.length}件</strong>);
+  },
   init: function(video_tags) {
     var tagsContainer = video_tags.firstElementChild,
         edit = this._getEdit(tagsContainer),
@@ -512,7 +522,7 @@ var CommandLinks = {
 
     if (edit !== null) {
       commandsContainer = edit.parentNode;
-      links = [edit, this.refresh, this.foreign, this.select];
+      links = [this.counter, edit, this.refresh, this.foreign, this.select];
     } else {
       // タグを更新できなかったとき。(混雑しています、など)
       if (tagsContainer === null)
