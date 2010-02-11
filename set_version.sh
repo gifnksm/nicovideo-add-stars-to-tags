@@ -19,4 +19,6 @@ fi
 echo "Last version: $last_version" 1>&2
 echo "New  version: $new_version" 1>&2
 sed -i "/==UserScript==/,/==\/UserScript==/s/$last_version/$new_version/g" $main_file
+git add $main_file
+git commit -m "Release $new_version"
 
