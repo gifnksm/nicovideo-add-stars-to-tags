@@ -15,7 +15,7 @@ if [ ! $last_version ]; then
   new_version="${date_string}a"
   last_version=`cat $main_file | grep "@version" | sed -e "s/^.\+@version\s\+\([0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}[a-z]\).*$/\1/"`
 elif [ $last_version = "${date_string}z" ]; then
-  echo "Error: There is too many releases on today" 1>&2 
+  echo "Error: There are too many releases on today" 1>&2 
   exit 1
 else
   new_version=`echo -n $last_version | tr "[a-w]" "[b-z]"` 
