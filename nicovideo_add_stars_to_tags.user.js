@@ -2,13 +2,13 @@
 // @name           nicovideo Add Stars to Tags
 // @namespace      http://d.hatena.ne.jp/gifnksm/
 // @description    Add stars that represents their uploader set the tags unmodifiable.
-// @version        2010-02-11a
+// @version        2010-02-19a
 // @include        http://www.nicovideo.jp/watch/*
-// @resource       style http://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/2010-02-11a/style.css
-// @resource       ctg1 http://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/2010-02-11a/ctg1.png
-// @resource       ctg2 http://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/2010-02-11a/ctg2.png
-// @resource       ctg1lock http://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/2010-02-11a/ctg1lock.png
-// @resource       ctg2lock http://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/2010-02-11a/ctg2lock.png
+// @resource       style http://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/2010-02-19a/style.css
+// @resource       ctg1 http://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/2010-02-19a/ctg1.png
+// @resource       ctg2 http://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/2010-02-19a/ctg2.png
+// @resource       ctg1lock http://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/2010-02-19a/ctg1lock.png
+// @resource       ctg2lock http://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/2010-02-19a/ctg2lock.png
 // ==/UserScript==
 
 /*
