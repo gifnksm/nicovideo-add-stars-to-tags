@@ -334,7 +334,10 @@ AllTags.__defineSetter__(
 AllTags.refresh = function(callback) {
   var self = this;
   function update(html) {
-    self._innerHTML = html;
+    if (html.indexOf('<!DOCTYPE') == 0)
+      self._innerHTML = '<p style="font-size: 12px; color: #cc0000; padding: 4px;">通信エラー (不正なレスポンスです)</p>';
+    else
+      self._innerHTML = html;
     if (callback instanceof Function)
       callback();
   }
