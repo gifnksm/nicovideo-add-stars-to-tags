@@ -63,9 +63,35 @@ Array.prototype.joinDOM = function() {
 };
 
 // class関連関数
+var {addClassName, removeClassName, hasClassName} = (function() {
+    if (document.body.classList !== undefined) {
+    return {
+      addClassName: function addClassName(elem, className)
+        elem.classList.add(className),
+      removeClassName: function removeClassName(elem, className)
+        elem.classList.remove(className),
+      hasClassName: function hasClassName(elem, className)
+        elem.classList.contains(className)
+    };
+  }
+  return {
+    addClassName: function addClassName(elem, className) {
+      if (!hasClassName(elem))
+        elem.className += ' ' + className;
+    },
+    removeClassName: function removeClassName(elem, className) {
+      elem.className = elem.className.split(/\s+/).filter(
+        function(exist_name) exist_name != className).join(' ');
+    },
+    hasClassName: function hasClassName(elem, className) {
+      return elem.className.split(/\s+/).indexOf(className) != -1;
+    }
+  };
+})();
+
 function setClassName(elem, className, flag) {
-  if (flag) elem.classList.add(className);
-  else elem.classList.remove(className);
+  if (flag) addClassName(elem, className);
+  else removeClassName(elem, className);
 }
 
 // オブジェクトをDOMノードに変換する
@@ -237,9 +263,9 @@ TagLink.prototype = {
   decorate: function() {
     var parent = this.link.parentNode,
         icon = parent.querySelector('img[alt="カテゴリ"]');
-    parent.classList.add(this.isDomain
-                         ? TagLink.ClassNames.Domain
-                         : TagLink.ClassNames.Foreign);
+    addClassName(parent, this.isDomain
+                 ? TagLink.ClassNames.Domain
+                 : TagLink.ClassNames.Foreign);
     if (icon !== null) {
       if (this.isLocked) {
         icon.src = LockedCategoryIcon1;
@@ -326,7 +352,7 @@ AllTags.__defineSetter__(
     this._updateTags();
     // タグの更新後，大百科のアイコンが付かないニコニコ動画側のバグ(？)への対処
     this.forEach(this.container.querySelectorAll('[rel="tag"]:not(.nicopedia)'),
-                 function(link) { link.classList.add('nicopedia'); });
+                 function(link) { addClassName(link, 'nicopedia'); });
     if (unsafeWindow.Nicopedia !== undefined)
       unsafeWindow.Nicopedia.decorateLinks();
     this.decorate();
@@ -373,7 +399,7 @@ var HTMLUtil = {
     var elem = e4xToDOM(e4x);
     this.setAttr(elem, attr);
     // クラス名を追加する (setAttr内でクラスが追加された場合上書きしないように)
-    elem.classList.add(className);
+    addClassName(elem, className);
 
     if (fun instanceof Function)
       elem.addEventListener(type, fun, false);
@@ -452,7 +478,7 @@ var CommandLinks = {
     var edit = container.querySelector('a[href^="javascript:startTagEdit"]');
     if (edit === null) return null;
     edit.textContent = "編集";
-    edit.classList.add(HTMLUtil.ClassNames.CommandLink);
+    addClassName(edit, HTMLUtil.ClassNames.CommandLink);
     edit.removeAttribute('style');
     return edit;
   },
@@ -482,7 +508,7 @@ var CommandLinks = {
       links = [this.refresh];
     }
 
-    commandsContainer.classList.add(this.ClassNames.Commands);
+    addClassName(commandsContainer, this.ClassNames.Commands);
     commandsContainer.appendChild(
       links.joinDOM('[ ',
                     <span class={this.ClassNames.Separator}> | </span>,
