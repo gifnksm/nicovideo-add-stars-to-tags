@@ -299,8 +299,10 @@ AllTags.init = function(container) {
   this._updateCache();
   this._updateTags();
 };
-AllTags.decorate = function() {
+AllTags.decorate = function(isLoading) {
   this.forEach(function(link) link.decorate());
+  if (isLoading)
+    return;
   CommandLinks.init(this.container);
   this.container.appendChild(SelectionMenu.menu);
 };
@@ -356,7 +358,7 @@ AllTags.__defineSetter__(
                  function(link) { addClassName(link, 'nicopedia'); });
     if (unsafeWindow.Nicopedia !== undefined)
       unsafeWindow.Nicopedia.decorateLinks();
-    this.decorate();
+    this.decorate(false);
   });
 AllTags.refresh = function(callback) {
   var self = this;
@@ -567,7 +569,7 @@ unsafeWindow.finishTagEdit = function(url) {
    AllTags.init(document.getElementById('video_tags'));
    AllTags.showAll = GM_getValue('showAllTags', AllTags.showAll);
 
-   AllTags.decorate();
+   AllTags.decorate(AllTags.showAll);
 
    // 海外タグを表示しない場合
    if (!AllTags.showAll)
