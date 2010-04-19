@@ -567,11 +567,11 @@ unsafeWindow.finishTagEdit = function(url) {
    AllTags.init(document.getElementById('video_tags'));
    AllTags.showAll = GM_getValue('showAllTags', AllTags.showAll);
 
+   AllTags.decorate();
+
    // 海外タグを表示しない場合
-   if (!AllTags.showAll) {
-     AllTags.decorate();
+   if (!AllTags.showAll)
      return;
-   }
 
    // タグがついていない動画の場合，大百科の要素追加を待たず即座に更新
    if (AllTags.length === 0) {
@@ -581,7 +581,7 @@ unsafeWindow.finishTagEdit = function(url) {
 
    // 大百科アイコン追加後に更新
    AllTags.container.addEventListener('DOMNodeInserted', inserted, false);
-   // 30秒でタイムアウト
+   // タイムアウト設定(大百科アイコンが表示できない場合)
    setTimeout(refresh, NicopediaTimeout);
 
    // 大百科アイコン挿入後1回だけ更新する
