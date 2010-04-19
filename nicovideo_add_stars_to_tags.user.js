@@ -142,6 +142,7 @@ Object.memoize = function(obj, defs) {
 // Settings
 const VideoID = unsafeWindow.Video.id;
 const RequestURL = 'http://www.nicovideo.jp/tag_edit/' + VideoID;
+const NicopediaTimeout = 30000;
 
 const CategoryTags = [
   // エンタ・音楽・スポ
@@ -580,8 +581,8 @@ unsafeWindow.finishTagEdit = function(url) {
 
    // 大百科アイコン追加後に更新
    AllTags.container.addEventListener('DOMNodeInserted', inserted, false);
-   // 10秒でタイムアウト
-   setTimeout(refresh, 10000);
+   // 30秒でタイムアウト
+   setTimeout(refresh, NicopediaTimeout);
 
    // 大百科アイコン挿入後1回だけ更新する
    function refresh() {
