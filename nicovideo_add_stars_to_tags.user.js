@@ -3,11 +3,11 @@
 // @namespace      http://d.hatena.ne.jp/gifnksm/
 // @description    Add stars that represents their uploader set the tags unmodifiable.
 // @include        http://www.nicovideo.jp/watch/*
-// @resource       style http://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/master/style.css
-// @resource       ctg1 http://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/master/ctg1.png
-// @resource       ctg2 http://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/master/ctg2.png
-// @resource       ctg1lock http://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/master/ctg1lock.png
-// @resource       ctg2lock http://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/master/ctg2lock.png
+// @resource       style https://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/master/style.css
+// @resource       ctg1 https://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/master/ctg1.png
+// @resource       ctg2 https://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/master/ctg2.png
+// @resource       ctg1lock https://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/master/ctg1lock.png
+// @resource       ctg2lock https://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/master/ctg2lock.png
 // ==/UserScript==
 
 /*
