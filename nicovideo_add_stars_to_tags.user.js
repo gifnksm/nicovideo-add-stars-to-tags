@@ -4,11 +4,11 @@
 // @description    Add stars that represents their uploader set the tags unmodifiable.
 // @version        2010-04-15a
 // @include        http://www.nicovideo.jp/watch/*
-// @resource       style http://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/2010-04-15a/style.css
-// @resource       ctg1 http://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/2010-04-15a/ctg1.png
-// @resource       ctg2 http://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/2010-04-15a/ctg2.png
-// @resource       ctg1lock http://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/2010-04-15a/ctg1lock.png
-// @resource       ctg2lock http://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/2010-04-15a/ctg2lock.png
+// @resource       style https://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/2010-04-15a/style.css
+// @resource       ctg1 https://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/2010-04-15a/ctg1.png
+// @resource       ctg2 https://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/2010-04-15a/ctg2.png
+// @resource       ctg1lock https://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/2010-04-15a/ctg1lock.png
+// @resource       ctg2lock https://github.com/gifnksm/nicovideo-add-stars-to-tags/raw/2010-04-15a/ctg2lock.png
 // ==/UserScript==
 
 /*
@@ -143,6 +143,7 @@ Object.memoize = function(obj, defs) {
 // Settings
 const VideoID = unsafeWindow.Video.id;
 const RequestURL = 'http://www.nicovideo.jp/tag_edit/' + VideoID;
+const NicopediaTimeout = 30000;
 
 const CategoryTags = [
   // エンタ・音楽・スポ
@@ -299,8 +300,10 @@ AllTags.init = function(container) {
   this._updateCache();
   this._updateTags();
 };
-AllTags.decorate = function() {
+AllTags.decorate = function(isLoading) {
   this.forEach(function(link) link.decorate());
+  if (isLoading)
+    return;
   CommandLinks.init(this.container);
   this.container.appendChild(SelectionMenu.menu);
 };
@@ -356,7 +359,7 @@ AllTags.__defineSetter__(
                  function(link) { addClassName(link, 'nicopedia'); });
     if (unsafeWindow.Nicopedia !== undefined)
       unsafeWindow.Nicopedia.decorateLinks();
-    this.decorate();
+    this.decorate(false);
   });
 AllTags.refresh = function(callback) {
   var self = this;
@@ -567,11 +570,11 @@ unsafeWindow.finishTagEdit = function(url) {
    AllTags.init(document.getElementById('video_tags'));
    AllTags.showAll = GM_getValue('showAllTags', AllTags.showAll);
 
+   AllTags.decorate(AllTags.showAll);
+
    // 海外タグを表示しない場合
-   if (!AllTags.showAll) {
-     AllTags.decorate();
+   if (!AllTags.showAll)
      return;
-   }
 
    // タグがついていない動画の場合，大百科の要素追加を待たず即座に更新
    if (AllTags.length === 0) {
@@ -581,8 +584,8 @@ unsafeWindow.finishTagEdit = function(url) {
 
    // 大百科アイコン追加後に更新
    AllTags.container.addEventListener('DOMNodeInserted', inserted, false);
-   // 10秒でタイムアウト
-   setTimeout(refresh, 10000);
+   // タイムアウト設定(大百科アイコンが表示できない場合)
+   setTimeout(refresh, NicopediaTimeout);
 
    // 大百科アイコン挿入後1回だけ更新する
    function refresh() {
