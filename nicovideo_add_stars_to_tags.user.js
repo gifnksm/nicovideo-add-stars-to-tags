@@ -355,8 +355,9 @@ AllTags.__defineSetter__(
     this._updateCache();
     this._updateTags();
     // タグの更新後，大百科のアイコンが付かないニコニコ動画側のバグ(？)への対処
-    this.forEach(this.container.querySelectorAll('[rel="tag"]:not(.nicopedia)'),
-                 function(link) { addClassName(link, 'nicopedia'); });
+    Array.forEach(
+        this.container.querySelectorAll('[rel="tag"]:not(.nicopedia)'),
+        function(link) { addClassName(link, 'nicopedia'); });
     if (unsafeWindow.Nicopedia !== undefined)
       unsafeWindow.Nicopedia.decorateLinks();
     this.decorate(false);
